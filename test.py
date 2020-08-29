@@ -1,17 +1,75 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from elephant import signal_processing as sigp 
+from scipy.stats import vonmises, zscore
+from scipy.signal import hilbert, coherence
+import 
 
-angles = np.linspace(-10, 10, 10)
 
-norm_anles = np.arctan2(np.sin(angles), np.cos(angles))
+fd = 1000
+dur = 25
+N = int(dur*fd)
+t = np.linspace(0, dur,  N)
 
-my_norm_anles = angles%(2*np.pi)
-# my_norm_anles[my_norm_anles < -np.pi] += 2*np.pi
-# my_norm_anles[my_norm_anles >= np.pi] -= 2*np.pi
 
-print(norm_anles)            
-print(my_norm_anles)            
-            
-            
+phases = 2 * np.pi * 7 * t 
+
+# phases = phases%(2 * np.pi)
+# freqs = np.fft.fftfreq(t.size, 1/fd)
+# lfp_sp = np.random.rand(t.size) + 1j*np.random.rand(t.size)
+# lfp_sp[lfp_sp == 0] = 0 + 1j * 0
+# lfp_sp[freqs < 0].real = lfp_sp[freqs > 0].real
+# lfp_sp[freqs < 0].imag = -lfp_sp[freqs > 0].imag
+
+# lfp = np.fft.ifft(lfp_sp).real
+# lfp[lfp > 0.1] = 0
+# lfp *= 50
+
+#decres_phases = (phases > 0.5) & (phases < np.pi)
+
+lfp = np.cos(phases) + np.random.normal(0, 0.5, t.size)
+lfp += 0.7 * np.cos( 2 * np.pi * 45 * t  ) * vonmises.pdf(phases, 3.0, loc=1.5)
+
+
+plt.plot(t, lfp)
+plt.show()
+
+theta = sigp.butter(lfp, highpass_freq=4, lowpass_freq=20, order=3, fs=fd )
+
+
+gamma_freqs = np.arange(25, 90, 1)
+
+W = sigp.wavelet_transform(lfp, gamma_freqs, nco=6, fs=fd)
+
+# W = W[:, (t>0.4)&(t<1.6)]
+# t = t[(t>0.4)&(t<1.6)]
+
+mi = []
+
+
+
+for fr_idx in range(gamma_freqs.size):
+    
+    gamma_amples = np.abs(W[fr_idx, :])
+    
+    f, Coh = coherence(theta, gamma_amples, fs=fd, nperseg=4096)
+    Coh = Coh[ (f>1)&(f<20) ]
+    
+    mi.append(Coh)
+
+print(f)
+theta_freqs = f[ (f>1)&(f<20) ]
+
+mi = np.vstack(mi)
+
+
+
+plt.pcolor(theta_freqs, gamma_freqs, mi, cmap="rainbow" )
+plt.colorbar()
+plt.show()
+
+
+
 """
 import numpy as np
 import scipy.signal as sig

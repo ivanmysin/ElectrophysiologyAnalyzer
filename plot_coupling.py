@@ -58,21 +58,40 @@ with h5py.File(filepath, 'r') as h5file:
         plt.pcolor(xedges, yedges, hist)
         """
         
+        """
         freqs = electrod_group["lfp/processing/channel_1_wavelet/frequencies"][:]
         
-        gamma_freqs_0 = np.argmin( np.abs(freqs-30) )
-        gamma_freqs_1 = np.argmin( np.abs(freqs-90) )
+        gamma_freqs_0 = np.argmin( np.abs(freqs-25) )
+        gamma_freqs_1 = np.argmin( np.abs(freqs-45) )
         gamma_freqs = freqs[gamma_freqs_0:gamma_freqs_1]
         
         theta_freqs_0 = np.argmin( np.abs(freqs-4) )
-        theta_freqs_1 = np.argmin( np.abs(freqs-8) )
+        theta_freqs_1 = np.argmin( np.abs(freqs-10) )
         theta_freqs = freqs[theta_freqs_0:theta_freqs_1]
         
         gamma_W = electrod_group["lfp/processing/channel_1_wavelet/channel_1wavelet_coeff"][gamma_freqs_0:gamma_freqs_1, :]
         theta_W = electrod_group["lfp/processing/channel_1_wavelet/channel_1wavelet_coeff"][theta_freqs_0:theta_freqs_1, :]
 
         MI = plib.get_modulation_index(theta_W, gamma_W, nbins=20)
-        plt.pcolor(theta_freqs, gamma_freqs, MI)
+        plt.pcolor(theta_freqs, gamma_freqs, MI, vmin=0, vmax=np.max(MI), cmap="rainbow")
+        
+        plt.colorbar()
         # plt.imshow(np.abs(theta_W[:, :1000]))
+        """
+        
+        freqs = electrod_group["lfp/processing/channel_1_wavelet/frequencies"][:]
+        
+        gamma_freqs_0 = np.argmin( np.abs(freqs-25) )
+        gamma_freqs_1 = np.argmin( np.abs(freqs-90) )
+        gamma_freqs = freqs[gamma_freqs_0:gamma_freqs_1]
+        
+        
+        gamma_W = electrod_group["lfp/processing/channel_1_wavelet/channel_1wavelet_coeff"][gamma_freqs_0:gamma_freqs_1, :]
+        theta = electrod_group["lfp/processing/channel_1_bands/theta"]
+        
+        MI, theta_freqs = plib.get_mi_by_coherence(theta, gamma_W, fd, ph_fr_range=[4, 12], nperseg=4096)
+        
+        plt.pcolor(theta_freqs, gamma_freqs, MI, vmin=0, vmax=1.0, cmap="rainbow")
+        plt.colorbar()
         plt.show()
 
