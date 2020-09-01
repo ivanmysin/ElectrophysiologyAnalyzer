@@ -1,14 +1,12 @@
 
 import numpy as np
-# import sys
-# sys.path.append("/home/ivan/coding/septo-hippocampal-model/cython_code/")
 from processingLib import *
 import scipy.signal as sig
 
 def read_datapack_txt_file(filepath):
     data = []
     channel_names = []
-    with open(filepath) as file:
+    with open(filepath, mode='r', encoding="windows-1251") as file:
         isstartdata = False
         for idx, line in enumerate(file.readlines()):
             line = line[:-1]  # удаляем \n
